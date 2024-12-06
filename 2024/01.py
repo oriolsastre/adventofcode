@@ -1,7 +1,7 @@
 # Llegeix el fitxer 01_data.txt i guarda les dades
 left = []
 right = []
-with open('01_data.txt', 'r') as f:
+with open('data/01_data.txt', 'r') as f:
     # Guarda els valors del primer numero a l'array left i l'altre número a l'array right
     # Iterant en data, separa el contingut de cada línia per " " i guarda el primer valor a left i el segon a right
     for line in f:

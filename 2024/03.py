@@ -1,6 +1,6 @@
 import re
 
-file="03_data.txt"
+file="data/03_data.txt"
 
 def sum_muls(memory_string:str)->int:
   suma_muls=0

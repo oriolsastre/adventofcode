@@ -1,4 +1,4 @@
-file="04_data.txt"
+file="data/04_data.txt"
 
 xmas_count=0
 masmas_count=0

@@ -1,5 +1,5 @@
 import math
-file = "02_data.txt"
+file = "data/02_data.txt"
 safeReport = 0
 safeReportTolerance = 0
 

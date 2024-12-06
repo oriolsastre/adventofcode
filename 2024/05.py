@@ -1,4 +1,4 @@
-file="05_data.txt"
+file="data/05_data.txt"
 
 rules=[]
 prev_rules={}
