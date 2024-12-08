@@ -1,15 +1,5 @@
 file="data/08_data.txt "
 
-def busca_antenes(mapa_antenes)->dict[int]:
-    antenes_llocs={}
-    for y in range(len(mapa_antenes)):
-        for x in range(len(mapa_antenes[0])):
-            antena=mapa_antenes[y][x]
-            if antena != ".":
-                if antena not in antenes_llocs:
-                    antenes_llocs[antena]=[]
-                antenes_llocs[antena].append([y,x])
-    return antenes_llocs
 def guarda_antinode(simbol,y,x,antinodes_llocs):
     hash_lloc=str(y)+"_"+str(x)
     if hash_lloc not in antinodes_llocs:
@@ -35,13 +25,18 @@ def localitza_antinodes(simbol, antena, antena_post, antinodes_llocs, mapa_anten
         [new_post_y, new_post_x] = [new_post_y + y_diff, new_post_x + x_diff] # 2na part
 
 mapa_antenes=[]
+antenes_llocs={}
+antinodes_llocs={}
 with open(file, "r") as f:
     for line in f:
         line=line.strip()
         mapa_antenes.append(line)
-
-antenes_llocs=busca_antenes(mapa_antenes)
-antinodes_llocs={}
+        x=mapa_antenes.index(line)
+        for y in range(len(line)):
+            if line[y] != ".":
+                if line[y] not in antenes_llocs:
+                    antenes_llocs[line[y]]=[]
+                antenes_llocs[line[y]].append([x,y])
 
 for y in range(len(mapa_antenes)):
     for x in range(len(mapa_antenes[0])):
