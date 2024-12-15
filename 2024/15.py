@@ -1,5 +1,3 @@
-import copy
-
 file="data/15_data.txt"
 file_test="data/15_data_test.txt"
 type Mapa = list[list[str]]
@@ -36,22 +34,6 @@ def posicio_robot(mapa:Mapa)->tuple[int,int]:
 def empeny(mapa:Mapa,posicio:tuple[int,int],direccio:tuple[int,int])->bool:
     [y,x]=posicio
     [dy,dx]=direccio
-    [y_nou,x_nou]=[y,x]
-    stack=[]
-    while True:
-        if mapa[y_nou][x_nou]=="#": return False
-        elif mapa[y_nou][x_nou]=="O": stack.append((y_nou,x_nou))
-        elif mapa[y_nou][x_nou]==".":
-            stack.append((y_nou,x_nou))
-            break
-        y_nou+=dy
-        x_nou+=dx
-    for i in range (len(stack)):
-        mapa[stack[-i-1][0]][stack[-i-1][1]]=mapa[stack[-i-1][0]-dy][stack[-i-1][1]-dx]
-    return True
-def empeny_doble(mapa:Mapa,posicio:tuple[int,int],direccio:tuple[int,int])->bool:
-    [y,x]=posicio
-    [dy,dx]=direccio
     new_stack=set([(y,x)])
     stack=[new_stack]
     while len(new_stack)>0:
@@ -61,13 +43,11 @@ def empeny_doble(mapa:Mapa,posicio:tuple[int,int],direccio:tuple[int,int])->bool
             y_nou=loc[0]+dy
             x_nou=loc[1]+dx
             if mapa[y_nou][x_nou]=="#": return False
-            elif mapa[y_nou][x_nou]==".": new_stack.add((y_nou,x_nou))
-            elif mapa[y_nou][x_nou]=="O": new_stack.add((y_nou,x_nou))
-            elif mapa[y_nou][x_nou] in ["[", "]"] and dy==0: new_stack.add((y_nou,x_nou))
-            elif mapa[y_nou][x_nou] in ["[", "]"] and dy!=0:
+            elif mapa[y_nou][x_nou] in [".", "O", "[", "]"]:
                 new_stack.add((y_nou,x_nou))
-                if mapa[y_nou][x_nou]=="[": new_stack.add((y_nou,x_nou+1))
-                elif mapa[y_nou][x_nou]=="]": new_stack.add((y_nou,x_nou-1))
+                if mapa[y_nou][x_nou] in ["[", "]"] and dy!=0:
+                    if mapa[y_nou][x_nou]=="[": new_stack.add((y_nou,x_nou+1))
+                    elif mapa[y_nou][x_nou]=="]": new_stack.add((y_nou,x_nou-1))
         if len(new_stack)>0: stack.append(new_stack)
     for i in range (len(stack)):
         for loc in stack[-i-1]:
@@ -76,29 +56,22 @@ def empeny_doble(mapa:Mapa,posicio:tuple[int,int],direccio:tuple[int,int])->bool
             else:
                 mapa[loc[0]][loc[1]]=mapa[loc[0]-dy][loc[1]-dx]
     return True    
-def moviment(mapa:Mapa,posicio:tuple[int,int],direccio:tuple[int,int],doble=False)->tuple[int,int]:
+def moviment(mapa:Mapa,posicio:tuple[int,int],direccio:tuple[int,int])->tuple[int,int]:
     [y,x]=posicio
     [dy,dx]=direccio
     [y_nou, x_nou]=[y+dy,x+dx]
     if mapa[y_nou][x_nou]=="#":
         return posicio
-    if mapa[y_nou][x_nou]=="O" and not empeny(mapa,posicio,direccio):
-        return posicio
-    if mapa[y_nou][x_nou] in ["[", "]"] and not empeny_doble(mapa,posicio,direccio):
+    if mapa[y_nou][x_nou] in ["O", "[", "]"] and not empeny(mapa,posicio,direccio):
         return posicio
     mapa[y][x]="."
     mapa[y_nou][x_nou]="@"
     return (y_nou,x_nou)
-def executa_ordres(mapa:Mapa,pos_incial:tuple[int,int],ordres:str,doble=False)->None:
-    direccions={
-        "^": (-1,0),
-        ">": (0,1),
-        "v": (1,0),
-        "<": (0,-1)
-    }
+def executa_ordres(mapa:Mapa,pos_incial:tuple[int,int],ordres:str)->None:
+    direccions={ "^": (-1,0), ">": (0,1), "v": (1,0), "<": (0,-1)}
     posicio=pos_incial
     for ordre in ordres:
-        posicio=moviment(mapa,posicio,direccions[ordre],doble)
+        posicio=moviment(mapa,posicio,direccions[ordre])
 def imprimeix_mapa(mapa:Mapa)->None:
     for line in mapa:
         print("".join(line))
@@ -109,13 +82,12 @@ def suma_coordenades(mapa:Mapa)->int:
             if mapa[y][x] in ["O", "["]: suma+=100*y+x
     return suma
 
-
 (mapa_og, ordres_og, posicio_inicial) = llegeix_input(file)
 executa_ordres(mapa_og,posicio_inicial,ordres_og)
 # imprimeix_mapa(mapa_og)
 print("La suma de les coordenades de les caixes és de:", suma_coordenades(mapa_og)) # 1413675
 
 (mapa_doble, ordres_doble, pos_inicial_doble) = llegeix_input(file,True)
-executa_ordres(mapa_doble,pos_inicial_doble,ordres_doble, True)
+executa_ordres(mapa_doble,pos_inicial_doble,ordres_doble)
 # imprimeix_mapa(mapa_doble)
 print("La suma de les coordenades de les caixes en el mapa doble és de:", suma_coordenades(mapa_doble)) # 1399772
