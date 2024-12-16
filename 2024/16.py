@@ -53,32 +53,38 @@ def busca_camins(mapa:Mapa, mapa_scores:MapaScore)->int:
       camins = sorted(camins+busca_cami_no_visitat(mapa, mapa_scores, cami), key=lambda x: x[2])
   (pos_final,_,_) = posicio_inicial(mapa, True)
   return mapa_scores[pos_final[0]][pos_final[1]]
-def vei_enrere(mapa_scores, pos)->list[pos]:
+def vei_enrere(mapa_scores:MapaScore, mapa:Mapa, pos:pos)->list[pos]:
   coords_veins=set(((-1,0),(0,1),(1,0),(0,-1)))
   (y,x)=pos
   score=mapa_scores[y][x]
   veins=[]
   for coord in coords_veins:
-    [new_y,new_x]=[y+coord[0],x-coord[1]]
+    [new_y,new_x]=[y+coord[0],x+coord[1]]
     score_vei = mapa_scores[new_y][new_x]
     if (score_vei == score-1 or score_vei == score-1001) and new_x>0 and new_y<len(mapa_scores)-1:
       veins.append((new_y,new_x))
+    # Mirar alguns passos dobles per camins que venen de revolt i la puntuació "no és lineal"
+    if new_y+coord[0] in range(len(mapa_scores)) and new_x+coord[1] in range(len(mapa_scores[0])):
+      if mapa[new_y][new_x] != "#":
+        score_curt = mapa_scores[new_y][new_x] 
+        score_llarg = mapa_scores[new_y+coord[0]][new_x+coord[1]]
+        if score_llarg!=None and score_curt!=None and (score_curt+1==score or score_curt+1001==score):
+          if score_llarg == score-2: veins.append((new_y+coord[0],new_x+coord[1]))
   return veins
-def desfes_cami(mapa_scores: MapaScore, pos_final:pos)->int:
+def desfes_cami(mapa_scores: MapaScore, pos_final:pos, mapa:Mapa)->int:
   cadires = set()
   veins = [pos_final]
   while len(veins)>0:
     cadira = veins.pop()
     cadires.add(cadira)
-    veins.extend(vei_enrere(mapa_scores, cadira))
-  print(cadires)
+    mapa[cadira[0]][cadira[1]]="0"
+    for vei in vei_enrere(mapa_scores, mapa, cadira):
+      if vei not in cadires: veins.append(vei)
   return len(cadires)
 
 
-(mapa, mapa_scores)=importa_mapa(file_test)
-print(busca_camins(mapa, mapa_scores)) # 85480
+(mapa, mapa_scores)=importa_mapa(file)
+print("La puntuació mínima és de: ",busca_camins(mapa, mapa_scores)) # 85480
 (pos_f,dir_f,score_f)=posicio_inicial(mapa, True)
-for y in range(len(mapa_scores)):
-  print(mapa_scores[y])
-print(desfes_cami(mapa_scores, pos_f))
+print("Hi ha", desfes_cami(mapa_scores, pos_f, mapa), "cadires als camins més curts") # 518
 
