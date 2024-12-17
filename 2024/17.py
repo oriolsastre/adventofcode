@@ -36,9 +36,11 @@ def run_program(program:list[int], registers_abc:list[int,int,int])->str:
         registers_abc[1]=math.trunc(registers_abc[0]/math.pow(2,get_combo_operand(program[i+1],registers_abc)))
       case 7:
         registers_abc[2]=math.trunc(registers_abc[0]/math.pow(2,get_combo_operand(program[i+1],registers_abc)))
-    # print(registers_abc)
     i+=salt
   return ",".join([str(x) for x in output])
 
 (registres, programa) = importa_dades(file)
 print("L'output del programa és:", run_program(programa, registres)) # 6,2,7,2,3,1,6,0,5
+
+a=(((((((((((((((6*8)+5)*8+6)*8+2)*8+1)*8+6)*8+6)*8+0)*8+5)*8+2)*8+2)*8+4)*8+7)*8+1)*8+5)*8+5
+print("Amb un registre A de:", a, "el programa es produeix a ell mateix") # 36548287712877
