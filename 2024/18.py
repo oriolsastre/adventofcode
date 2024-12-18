@@ -7,9 +7,9 @@ type pos = tuple[int,int,int]
 file="data/18_data.txt"
 file_test="data/18_data_test.txt"
 
-def importa_mapa(file:str, max_bytes:int)->tuple[Mapa, MapaScores, list[int]]:
-  mapa = [["." for _ in range(71)] for _ in range(71)]
-  mapa_scores = [[math.inf for _ in range(71)] for _ in range(71)]
+def importa_mapa(file:str, max_bytes:int, mida=71)->tuple[Mapa, MapaScores, list[int]]:
+  mapa = [["." for _ in range(mida)] for _ in range(mida)]
+  mapa_scores = [[math.inf for _ in range(mida)] for _ in range(mida)]
   falling_bytes=[]
   with open(file, "r") as f:
     byte=0
@@ -45,6 +45,8 @@ def busca_veins(mapa:Mapa, mapa_scores:MapaScores, posicio:pos, reverse=False)->
           veins_no_visitats.append((y_nou,x_nou,score+1))
         elif reverse and mapa_scores[y_nou][x_nou] == score-1:
           veins_no_visitats.append((y_nou,x_nou,mapa_scores[y_nou][x_nou]))
+          # En reverse només m'interessa trobar un camí de tornada
+          break
   return sorted(veins_no_visitats, key=lambda x: x[2])
 def mapa_score(mapa:Mapa, mapa_scores:MapaScores)->int:
   mapa_scores[0][0] = 0
@@ -64,22 +66,23 @@ def pinta_camins(mapa:Mapa, mapa_scores:MapaScores)->set[pos]:
     for vei in busca_veins(mapa, mapa_scores, cami, True):
       if (vei[0],vei[1]) not in posicions:
         posicions.add((vei[0],vei[1]))
+        if vei[0] == 0 and vei[1] == 0: break
         camins.append(vei)
+        camins = sorted(camins, key=lambda x: x[2])
   return posicions
 def pinta_mapa(mapa:Mapa, posicions:set[pos])->None:
   for posicio in posicions:
-    print(posicio)
     mapa[posicio[0]][posicio[1]] = "O"
   imprimeix_mapa(mapa)
-
 def ultim_byte(mapa:Mapa, mapa_scores:MapaScores, falling_bytes:list[int])->tuple[int,list[int]]:
+  [max_y,max_x] = [len(mapa), len(mapa[0])]
   posicions=pinta_camins(mapa, mapa_scores)
   for i in range(len(falling_bytes[1024:])):
     fall_byte = (falling_bytes[1024+i][1], falling_bytes[1024+i][0])
     mapa[fall_byte[0]][fall_byte[1]] = "#"
     # Si cau algun byte per allà on passa un camí òptim, recalculem el mapa
     if fall_byte in posicions:
-      mapa_scores = [[math.inf for _ in range(71)] for _ in range(71)]
+      mapa_scores = [[math.inf for _ in range(max_x+1)] for _ in range(max_y+1)]
       score=mapa_score(mapa, mapa_scores)
       if score == math.inf: break
       posicions=pinta_camins(mapa, mapa_scores)
