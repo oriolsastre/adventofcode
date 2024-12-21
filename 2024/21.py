@@ -34,26 +34,36 @@ def moviment_teclat(inici: str, final: str, numeric:bool=False)->str:
         output+=direccio_arrow[(dy,0)]
     output_ordenat=ordena_sequencia(output, (y1,x1), (y2,x2), numeric)
     return output_ordenat
-def ordre_to_arrow(ordre:str, numeric:bool=False)->str:
+def ordre_to_arrow_len(ordre:str, robots:int, cache:dict={})->int:
+    def arrows_in_cache(inici: str, final: str, robot:int)->int:
+        if (inici, final, robot) in cache: return cache[(inici, final, robot)]
+        if robot==0: return 1
+        else:
+            sequencia=moviment_teclat(inici, final, True if robot==robots else False)+"A"
+            len_arrows=0
+            start="A"
+            for char in sequencia:
+                len_arrows+=arrows_in_cache(start, char, robot-1)
+                start=char
+            cache[(inici, final,robot)]=len_arrows
+        return len_arrows
+    
+    len_arrows=0
     start="A"
-    output=""
     for char in ordre:
-        output+=moviment_teclat(start, char, numeric)
-        output+="A"
+        len_arrows+=arrows_in_cache(start, char, robots)
         start=char
-    return output
-def jo_maquina_maquina_numeric(ordre:str)->str:
-    # Cal posar l'ordre al teclat numeric, amb radiació
-    output1 = ordre_to_arrow(ordre, True)
-    # Cal controlar el robot que s'ha posat al teclat numeric; té fred
-    output2 = ordre_to_arrow(output1, False)
-    # Cal controlar el robot que controla el robot amb fred; sóc jo
-    return ordre_to_arrow(output2, False)
-def complexitat_ordre(ordre:str)->int:
-    sequencia=jo_maquina_maquina_numeric(ordre)
+    return len_arrows
+def complexitat_ordre(ordre:str, num_maquines:int=2, cache:dict={})->int:
+    mida_sequencia=ordre_to_arrow_len(ordre, num_maquines, cache)
     num_ordre=int(ordre[:-1])
-    return num_ordre*len(sequencia)
+    return num_ordre*mida_sequencia
 
 ordres=importa_dades(file)
-resultat1=sum([complexitat_ordre(ordre) for ordre in ordres]) ## 184716
-print(resultat1)
+cache={}
+robots1=3
+resultat1=sum([complexitat_ordre(ordre, robots1, cache) for ordre in ordres]) ## 184716
+print("Usant", robots1, "robots la complexitat de les ordres és de:",resultat1)
+robots2=26
+resultat2=sum([complexitat_ordre(ordre, robots2, cache) for ordre in ordres]) ## 229403562787554
+print("Usant", robots2, "robots la complexitat de les ordres és de:", resultat2)
