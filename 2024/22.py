@@ -28,8 +28,35 @@ def next_secret_number(secret_number:int)->int:
 def n_secret_number(secret_number:int, n:int)->int:
     for _ in range(n): secret_number=next_secret_number(secret_number)
     return secret_number
+def best_buy_n_secret_number(secret_number:int, n:int)->dict:
+    millors_preus={}
+    preu=secret_number%10
+    preu_prev=None
+    dpreu=None
+    d_preus=[]
+    for i in range(n):
+        if i > 0: dpreu=preu-preu_prev
+        d_preus.append(dpreu)
+        if len(d_preus)>4: d_preus.pop(0)
+        if tuple(d_preus) not in millors_preus: millors_preus[tuple(d_preus)]=preu
+        preu_prev=preu
+        secret_number=next_secret_number(secret_number)
+        preu=secret_number%10
+    return millors_preus
+def troba_millor_ordre(millors_preus:list[dict[tuple: int]])->tuple[tuple, int]:
+    gran_total={}
+    for millor_preu in millors_preus:
+        for ordre in millor_preu.keys():
+            if None in ordre: continue
+            if ordre not in gran_total: gran_total[ordre]=millor_preu[ordre]
+            else: gran_total[ordre]+=millor_preu[ordre]
+    return max(gran_total.items(), key=operator.itemgetter(1))
 
+### Inici
 secret_numbers = import_secret_numbers(file)
 
 result1=sum([n_secret_number(secret_number, 2000) for secret_number in secret_numbers])
 print("La suma del 2000è número secret és:", result1) # 13022553808
+
+result2=troba_millor_ordre([best_buy_n_secret_number(secret_number, 2000) for secret_number in secret_numbers])
+print("Amb una ordre de", result2[0], "podem vendre", result2[1], "plàtans.") # 1555
