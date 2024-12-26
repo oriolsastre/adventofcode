@@ -1,5 +1,3 @@
-from random import randint
-
 type Cables = dict[str,int]
 type Porta = tuple[str,str,str,str]
 
@@ -46,7 +44,6 @@ def genera_input_xy(x:int, y:int)->Cables:
     return cables_xy
 def retorna_cables_z(cables:Cables, lletra:str="z")->str:
     cables_z={k: v for k,v in sorted(cables.items(), reverse=True) if lletra and k.startswith(lletra)}
-    # print(cables_z)
     return "".join(str(x) for x in cables_z.values()) 
 def retorna_cables_xy(cables:Cables)->tuple[str,str]:
     return (retorna_cables_z(cables,"x"), retorna_cables_z(cables,"y"))
@@ -55,13 +52,8 @@ def diferencia_xy_z(cables:Cables)->list[str]:
     (x_bin,y_bin)=retorna_cables_xy(cables)
     z_bin = retorna_cables_z(cables).zfill(46)
     xy_bin=bin(int(x_bin,2)+int(y_bin,2))[2:].zfill(46)
-    # print(x_bin.zfill(46))
-    # print(y_bin.zfill(46))
-    # print(z_bin)
-    # print(xy_bin)
     for i in range(len(xy_bin)):
         if xy_bin[i] != z_bin[i]: diffs.append("z"+str(len(xy_bin)-i-1).zfill(2))
-    # print(diffs)
     return diffs
 def get_porta_parent(cable: str, portes:list[Porta])->Porta:
     return next((porta for porta in portes if porta[3] == cable), None)
@@ -76,8 +68,6 @@ def portes_in_diff(cables:Cables, portes:list[Porta]):
             portes_in_diff_dict[cable].append(porta)
             diffs += [porta[0], porta[2]]
     return count_portes_in_diff(portes_in_diff_dict)
-def get_cables_children(cable: str, portes:list[Porta])->list[str]:
-    return [porta[3] for porta in portes if porta[0] == cable or porta[2] == cable]
 def count_portes_in_diff(portes_in_diff:dict[str, list[str]])->list:
     count_cables={}
     for _, portes in portes_in_diff.items():
@@ -86,19 +76,43 @@ def count_portes_in_diff(portes_in_diff:dict[str, list[str]])->list:
             count_cables[porta]+=1
     count_cables = sorted(count_cables.items(), key=lambda x: x[1], reverse=True)
     return count_cables
-def swap_portes(porta_a:Porta, porta_b:Porta, portes:list[Porta])->list[Porta]:
-    return_portes = portes.copy()
-    res_a = porta_a[3]
-    res_b = porta_b[3]
+def input_xor_output(cables_xy:Cables, portes:list[Porta])->list[str]:
+    cables_dolents = []
+    # En un adder, input i passa a un XOR i el resultat a un XOR que va a output i
+    for cable_x in [cables_x for cables_x in cables_xy.keys() if cables_x.startswith("x")]:
+        index = cable_x[1:]
+        cable_y="y"+index
+        cable_z="z"+index
+        if index != "00":
+            cable_intermedi = next((porta[3] for porta in portes if (porta[1]=="XOR" and ((porta[0]==cable_x and porta[2]==cable_y) or (porta[0]==cable_y and porta[2]==cable_x)))), None)
+            if cable_intermedi == None: print("No hauria de passar", cable_x, cable_y)
+            else:
+                cable_final = next((porta[3] for porta in portes if (porta[1]=="XOR" and ((porta[0]==cable_intermedi or porta[2]==cable_intermedi)))), None)
+                if cable_final == None: cables_dolents.append(cable_intermedi)
+                else:
+                    if cable_final != cable_z: cables_dolents.append(cable_final)
+    return cables_dolents
+def and_output(portes:list[Porta])->list[str]:
+    cables_dolents = []
+    # En un adder, l'ouput no surt de cap porta AND
     for porta in portes:
-        if porta == porta_a:
-            porta_a2 = list(porta_a)
-            porta_a2[3] = res_b
-            porta = tuple(porta_a2)
-        elif porta == porta_b:
-            porta_b2 = list(porta_b)
-            porta_b2[3] = res_a
-            porta = tuple(porta_b2)
+        if porta[1] == "AND" and porta[3].startswith("z"): cables_dolents.append(porta[3])
+    return cables_dolents
+def xor_output(portes:list[Porta])->list[str]:
+    # L'XOR que no prove de input, ha d'acaba a l'ouput
+    return [porta[3] for porta in portes if porta[1] == "XOR" and porta[0][0] not in ["x", "y"] and not porta[3].startswith("z")]
+def swap_cables(cable_a:str, cable_b:str, portes:list[Porta])->list[Porta]:
+    return_portes = portes.copy()
+    for i in range(len(return_portes)):
+        porta = return_portes[i]
+        if porta[3] == cable_a:
+            porta_a2 = list(porta)
+            porta_a2[3] = cable_b
+            return_portes[i] = tuple(porta_a2)
+        elif porta[3] == cable_b:
+            porta_b2 = list(porta)
+            porta_b2[3] = cable_a
+            return_portes[i] = tuple(porta_b2)
     return return_portes
 
 (cables_xy,portes)=import_data(file)
@@ -106,44 +120,34 @@ cables = executa_cables(cables_xy,portes)
 z_bin = retorna_cables_z(cables)
 print("El número dels cables que comencen per 'z' és:", int(z_bin,2)) # 51745744348272
 
-print("------")
 portes_in_diff_dict = {}
 
-cables_zero_u = executa_cables(genera_input_xy(1,2**45-1),portes)
-z_bin_zero_u = retorna_cables_z(cables_zero_u)
-portes_in_diff(cables_zero_u,portes)
+print("---")
+print(set(input_xor_output(cables_xy,portes)+and_output(portes)+xor_output(portes)))
+# Miro l'origen de z18 on falla
+portes_2 = swap_cables("hmt", "z18", portes)
+cables_2 = executa_cables(cables_xy,portes_2)
+# portes_in_diff(cables_2,portes_2)
 
-print("------")
+print("---")
+print(set(input_xor_output(cables_xy,portes_2)+and_output(portes_2)+xor_output(portes_2)))
+# Miro l'origen de z31 on falla
+portes_3 = swap_cables("hkh", "z31", portes_2)
+cables_3 = executa_cables(cables_xy,portes_3)
+# portes_in_diff(cables_3,portes_3)
 
-cables_u_zero = executa_cables(genera_input_xy(2**43+2**42+2**41+2**40+2**39,0),portes)
-z_bin_u_zero = retorna_cables_z(cables_u_zero)
-portes_in_diff(cables_u_zero,portes)
+print("---")
+print(set(input_xor_output(cables_xy,portes_3)+and_output(portes_3)+xor_output(portes_3)))
+# bfq és el resultat d'un XOR i hauria de ser un z. Mirant origen, ve de x27,y27
+portes_4 = swap_cables("bfq", "z27", portes_3)
+cables_4 = executa_cables(cables_xy,portes_4)
+# portes_in_diff(cables_4,portes_4)
 
-print("------")
+print("---")
+print(set(input_xor_output(cables_xy,portes_4)+and_output(portes_4)))
+# fjp (malament) està relacionat amb bit 39. Miro l'XOR resultant de z39 i veig que bng no prove d'on toca
+portes_5 = swap_cables("fjp", "bng", portes_4)
+cables_5 = executa_cables(cables_xy,portes_5)
+# portes_in_diff(cables_5,portes_5)
 
-for _ in range(150):
-    cables_rand = executa_cables(genera_input_xy(randint(0,2**45-1),randint(0,2**45-1)),portes)
-    z_bin_rand = retorna_cables_z(cables_rand)
-    count_rand=portes_in_diff(cables_rand,portes)
-print(count_rand)
-
-for a in range(len(count_rand)):
-    for b in range(a+1,len(count_rand)):
-        for c in range(b+1,len(count_rand)):
-            for d in range(c+1,len(count_rand)):
-                for e in range(d+1,len(count_rand)):
-                    for f in range(e+1,len(count_rand)):
-                        for g in range(f+1,len(count_rand)):
-                            for h in range(g+1,len(count_rand)):
-                                portes_rand = swap_portes(count_rand[a][0],count_rand[b][0],portes)
-                                portes_rand = swap_portes(count_rand[c][0],count_rand[d][0],portes_rand)
-                                portes_rand = swap_portes(count_rand[e][0],count_rand[f][0],portes_rand)
-                                portes_rand = swap_portes(count_rand[g][0],count_rand[h][0],portes_rand)
-                                rand_x,rand_y = [randint(0,2**45-1) for _ in range(2)]
-                                cables_swap = executa_cables(genera_input_xy(rand_x,rand_y),portes_rand)
-                                z_bin_rand = retorna_cables_z(cables_rand)
-                                if bin((rand_x+rand_y))[2:].zfill(46) == z_bin_rand: print(a,b,c,d,e,f,g,h)
-
-for porta in portes:
-    if porta not in [porta_diff[0] for porta_diff in count_rand]:
-        print(porta)
+print("Els cables canviats han sigut:", ",".join(sorted(["hmt","z18","hkh","z31","bfq","z27","fjp","bng"])))
