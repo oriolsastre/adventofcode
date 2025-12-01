@@ -8,14 +8,17 @@ import (
 	"strings"
 )
 
-func getInput(year uint16, day uint8, log bool) string {
+func getInput(year uint16, day uint8, test bool, log bool) string {
 	// Try to load input from file
-	inputFromFile, err := loadInput(year, day)
+	inputFromFile, err := loadInput(year, day, test)
 	if err == nil {
 		if log {
 			fmt.Printf("Input for day %d/%d loaded from file:\n", year, day)
 		}
 		return inputFromFile
+	} else if test {
+		fmt.Printf("Input test for day %d/%d not found in file test\n", year, day)
+		os.Exit(1)
 	} else if log {
 		fmt.Printf("Input for day %d/%d not found in file, downloading:\n", year, day)
 	}
@@ -64,8 +67,14 @@ func getInput(year uint16, day uint8, log bool) string {
 	return string(input)
 }
 
-func loadInput(year uint16, day uint8) (string, error) {
-	inputFile, err := os.ReadFile(fmt.Sprintf("inputs/%d_%d.txt", year, day))
+func loadInput(year uint16, day uint8, test bool) (string, error) {
+	var filePath string
+	if test {
+		filePath = fmt.Sprintf("inputs/test/%d_%d.txt", year, day)
+	} else {
+		filePath = fmt.Sprintf("inputs/%d_%d.txt", year, day)
+	}
+	inputFile, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
