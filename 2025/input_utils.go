@@ -84,3 +84,8 @@ func loadInput(year uint16, day uint8, test bool) (string, error) {
 func input2LineArray(input string) []string {
 	return strings.Split(input, "\n")
 }
+
+func inputLineSplit(inputLine string, separator string) []string {
+	inputLine = strings.TrimSpace(inputLine)
+	return strings.Split(inputLine, separator)
+}
