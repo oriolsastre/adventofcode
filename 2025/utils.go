@@ -24,3 +24,34 @@ func removeDuplicateInt(ints []int) []int {
 	}
 	return result
 }
+
+// Mapes
+type Mapa struct {
+	mapa []string
+	x    int
+	y    int
+}
+
+func inMapa(x int, y int, mapa *Mapa) bool {
+	return x >= 0 && x < mapa.x && y >= 0 && y < mapa.y
+}
+
+func (m Mapa) printMapa() {
+	for _, line := range m.mapa {
+		fmt.Println(line)
+	}
+	fmt.Println("x:", m.x, "y:", m.y)
+}
+
+// Strings
+func canviarCharN(s string, n int, char string) string {
+	if n < 0 || n >= len(s) {
+		return s
+	} else if n == 0 {
+		return char + s[1:]
+	} else if n == len(s)-1 {
+		return s[:n] + char
+	} else {
+		return s[:n] + char + s[n+1:]
+	}
+}
