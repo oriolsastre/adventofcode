@@ -85,7 +85,7 @@ func input2LineArray(input string) []string {
 	rawArray := strings.Split(input, "\n")
 	var array []string
 	for _, line := range rawArray {
-		line = strings.TrimSpace(line)
+		// line = strings.TrimSpace(line)
 		line = strings.TrimSuffix(line, "\n")
 		line = strings.TrimSuffix(line, "\r")
 		if len(line) > 0 {
