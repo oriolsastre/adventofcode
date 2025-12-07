@@ -49,6 +49,10 @@ func inMapa(x int, y int, mapa *Mapa) bool {
 	return x >= 0 && x < mapa.x && y >= 0 && y < mapa.y
 }
 
+func inMapaX(x int, mapa *Mapa) bool {
+	return x >= 0 && x < mapa.x
+}
+
 func (m Mapa) printMapa() {
 	for _, line := range m.mapa {
 		fmt.Println(line)
