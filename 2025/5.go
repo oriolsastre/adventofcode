@@ -8,17 +8,17 @@ import (
 )
 
 func day5() {
-	testInput := true
+	testInput := false
 	input := getInput(2025, 5, testInput, false)
 	inputArray := input2LineArray(input)
 	ranges, values := getRangeValues(inputArray)
 
 	// 770
 	fmt.Printf("Solució del 1er problema: %d\n", getFreshIngredients(ranges, values))
-	minRanges := minimizeRanges(ranges)
-	for _, rang := range minRanges {
-		fmt.Println(rang)
-	}
+	minRanges := minRanges(ranges)
+
+	// 357674099117260
+	fmt.Printf("Solució del 2n problema: %d\n", cardRanges(minRanges))
 }
 
 func getRangeValues(input []string) ([][]int, []int) {
@@ -51,40 +51,42 @@ func getFreshIngredients(ranges [][]int, ingredients []int) int {
 	return freshIngredients
 }
 
-func minimizeRanges(ranges [][]int) [][]int {
-	var newRanges [][]int
-	for i, rang := range ranges {
-		set := len(newRanges) + 1
-
-		if len(rang) == 2 {
-			rang = append(rang, set)
+func minRanges(ranges [][]int) [][]int {
+	var newMinRanges [][]int
+	for i := range len(ranges) {
+		combinable, index := rangCombinable(ranges[i], newMinRanges)
+		if combinable {
+			newMinRanges = combinaRang(ranges[i], index, newMinRanges)
+			newMinRanges = minRanges(newMinRanges)
 		} else {
-			set = rang[2]
-		}
-		for _, rang2 := range ranges[i+1:] {
-			overlap, combRange := rangesOverlap(rang, rang2)
-			if overlap {
-				if len(rang2) == 2 {
-					rang2 = append(rang2, set)
-				} else {
-					set = rang2[2]
-				}
-				rang = append(combRange, set)
-			}
-		}
-		if len(newRanges) < set {
-			newRanges = append(newRanges, rang)
-		} else {
-			_, combRange := rangesOverlap(newRanges[set-1], rang)
-			newRanges[set-1] = combRange
+			newMinRanges = append(newMinRanges, ranges[i])
 		}
 	}
+	return newMinRanges
+}
 
-	return newRanges
+func rangCombinable(targetRang []int, ranges [][]int) (bool, int) {
+	for i, rang := range ranges {
+		overlap, _ := rangesOverlap(targetRang, rang)
+		if overlap {
+			return overlap, i
+		}
+	}
+	return false, -1
+}
 
+func combinaRang(rang []int, index int, ranges [][]int) [][]int {
+	overlap, combRang := rangesOverlap(rang, ranges[index])
+	if overlap {
+		ranges[index] = combRang
+	}
+	return ranges
 }
 
 func rangesOverlap(range1 []int, range2 []int) (bool, []int) {
+	if len(range1) == 0 || len(range2) == 0 {
+		return false, nil
+	}
 	if (range1[0] >= range2[0] && range1[0] <= range2[1]) ||
 		(range2[0] >= range1[0] && range2[0] <= range1[1]) {
 		newRange := []int{int(math.Min(float64(range1[0]), float64(range2[0]))), int(math.Max(float64(range1[1]), float64(range2[1])))}
@@ -93,7 +95,12 @@ func rangesOverlap(range1 []int, range2 []int) (bool, []int) {
 	return false, nil
 }
 
-type combiRange struct {
-	ranges [][]int
-	id     int
+func cardRanges(ranges [][]int) int {
+	card := 0
+	for _, rang := range ranges {
+		if len(rang) >= 2 {
+			card += rang[1] - rang[0] + 1
+		}
+	}
+	return card
 }
