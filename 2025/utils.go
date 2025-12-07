@@ -25,6 +25,19 @@ func removeDuplicateInt(ints []int) []int {
 	return result
 }
 
+func invertMatrixStr(matrix [][]string) [][]string {
+	invertedMatrix := make([][]string, len(matrix[0]))
+	for i := range len(invertedMatrix) {
+		invertedMatrix[i] = make([]string, len(matrix))
+	}
+	for i, row := range matrix {
+		for j, col := range row {
+			invertedMatrix[j][i] = col
+		}
+	}
+	return invertedMatrix
+}
+
 // Mapes
 type Mapa struct {
 	mapa []string
