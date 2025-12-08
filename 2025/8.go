@@ -22,6 +22,10 @@ func day8() {
 	connexions := crearConnexions(nodes, limit)
 	// 81536
 	fmt.Println("Solució primer problema:", maxConnexions(connexions, 3))
+	ultConn := ultimaConnexio(nodes)
+	distXUltConn := distanciaXConnexio(ultConn)
+	// 7017750530
+	fmt.Printf("Solucion segon problema: %d", int(distXUltConn))
 }
 
 func input2Nodes(input []string) []*NodeConne {
@@ -32,7 +36,7 @@ func input2Nodes(input []string) []*NodeConne {
 			x, _ := strconv.Atoi(splitLine[0])
 			y, _ := strconv.Atoi(splitLine[1])
 			z, _ := strconv.Atoi(splitLine[2])
-			nodes = append(nodes, &NodeConne{&Node{x, y, z, []*Node{}}, 0, false})
+			nodes = append(nodes, &NodeConne{&Node{x, y, z, []*Node{}}, 0})
 		}
 	}
 	return nodes
@@ -64,6 +68,51 @@ func crearConnexions(nodes []*NodeConne, limit int) []*NodeConne {
 	return minNodes
 }
 
+func ultimaConnexio(nodes []*NodeConne) Connexio {
+	for _, node := range nodes {
+		node.Circuit = 0
+	}
+	distancies := llistaDistanciaNodes(nodes)
+	i := 0
+	for len(distancies) > 0 {
+		connexio := distancies.pop()
+		i++
+		node1 := connexio.node1
+		node2 := connexio.node2
+		max := math.Max(float64(node1.Circuit), float64(node2.Circuit))
+		if max == 0 {
+			node1.Circuit = i
+			node2.Circuit = i
+		} else if node1.Circuit > node2.Circuit {
+			ogValue := node2.Circuit
+			node2.Circuit = node1.Circuit
+			if ogValue != 0 {
+				converteixCircuit(nodes, ogValue, node1.Circuit)
+			}
+		} else if node2.Circuit > node1.Circuit {
+			ogValue := node1.Circuit
+			node1.Circuit = node2.Circuit
+			if ogValue != 0 {
+				converteixCircuit(nodes, ogValue, node2.Circuit)
+			}
+		}
+		numCircuits := circuitsGraph(nodes)
+		if numCircuits == 1 && nodes[0].Circuit > 0 {
+			return connexio
+		}
+	}
+	return Connexio{}
+}
+
+func circuitsGraph(graph []*NodeConne) int {
+	nodeConneMapa := nodeConnToMap(graph)
+	var nodeConneSlice [][]*NodeConne
+	for _, nC := range nodeConneMapa {
+		nodeConneSlice = append(nodeConneSlice, nC)
+	}
+	return len(nodeConneSlice)
+}
+
 func maxConnexions(nodes []*NodeConne, max int) int {
 	nodeConneMapa := nodeConnToMap(nodes)
 	var nodeConneSlice [][]*NodeConne
@@ -83,9 +132,6 @@ func maxConnexions(nodes []*NodeConne, max int) int {
 func nodeConnToMap(nodes []*NodeConne) map[int][]*NodeConne {
 	nodeConneMapa := make(map[int][]*NodeConne)
 	for _, nodeConne := range nodes {
-		if nodeConne.Circuit == 0 {
-			continue
-		}
 		if _, ok := nodeConneMapa[nodeConne.Circuit]; !ok {
 			nodeConneMapa[nodeConne.Circuit] = []*NodeConne{}
 		}
@@ -128,11 +174,13 @@ func llistaDistanciaNodes(nodes []*NodeConne) DistanciaMinHeap {
 
 	return distanciaHeap
 }
+func distanciaXConnexio(connexio Connexio) float64 {
+	return float64(connexio.node1.x) * float64(connexio.node2.x)
+}
 
 type NodeConne struct {
 	*Node
 	Circuit int
-	Ultim   bool
 }
 
 type Connexio struct {
