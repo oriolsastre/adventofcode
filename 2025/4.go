@@ -5,7 +5,7 @@ import "fmt"
 func day4() {
 	testInput := false
 	input := getInput(2025, 4, testInput, false)
-	inputMapa := input2LineArray(input)
+	inputMapa := input2LineArray(input, true)
 	for i, line := range inputMapa {
 		if len(line) == 0 {
 			fmt.Println(i)

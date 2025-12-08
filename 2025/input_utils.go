@@ -81,11 +81,13 @@ func loadInput(year uint16, day uint8, test bool) (string, error) {
 	return string(inputFile), nil
 }
 
-func input2LineArray(input string) []string {
+func input2LineArray(input string, trimSpace bool) []string {
 	rawArray := strings.Split(input, "\n")
 	var array []string
 	for _, line := range rawArray {
-		// line = strings.TrimSpace(line)
+		if trimSpace {
+			line = strings.TrimSpace(line)
+		}
 		line = strings.TrimSuffix(line, "\n")
 		line = strings.TrimSuffix(line, "\r")
 		if len(line) > 0 {

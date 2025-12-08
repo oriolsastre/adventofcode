@@ -5,7 +5,7 @@ import "fmt"
 func day7() {
 	testInput := false
 	input := getInput(2025, 7, testInput, false)
-	inputArray := input2LineArray(input)
+	inputArray := input2LineArray(input, true)
 
 	mapa := Mapa{mapa: inputArray, x: len(inputArray[0]), y: len(inputArray)}
 

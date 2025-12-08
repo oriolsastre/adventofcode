@@ -10,7 +10,7 @@ import (
 func day5() {
 	testInput := false
 	input := getInput(2025, 5, testInput, false)
-	inputArray := input2LineArray(input)
+	inputArray := input2LineArray(input, true)
 	ranges, values := getRangeValues(inputArray)
 
 	// 770

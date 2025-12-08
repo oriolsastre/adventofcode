@@ -10,7 +10,7 @@ import (
 func day3() {
 	testInput := false
 	input := getInput(2025, 3, testInput, false)
-	inputArray := input2LineArray(input)
+	inputArray := input2LineArray(input, true)
 	joltageSum2 := 0
 	joltageSum12 := 0
 	for _, line := range inputArray {

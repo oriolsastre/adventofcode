@@ -8,7 +8,7 @@ import (
 func day1() {
 	testInput := false
 	input := getInput(2025, 1, testInput, false)
-	inputArray := input2LineArray(input)
+	inputArray := input2LineArray(input, true)
 
 	count := 0
 	count2 := 0

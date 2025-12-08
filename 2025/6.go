@@ -11,7 +11,7 @@ import (
 func day6() {
 	testInput := false
 	input := getInput(2025, 6, testInput, false)
-	inputArray := input2LineArray(input)
+	inputArray := input2LineArray(input, false)
 	problemes := inputArray2Problemes(inputArray)
 
 	// 5977759036837
