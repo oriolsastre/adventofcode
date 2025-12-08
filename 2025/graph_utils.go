@@ -6,7 +6,7 @@ type Node struct {
 	x     int
 	y     int
 	z     int
-	veins []Node
+	veins []*Node
 }
 
 func distanciaNodes(node1 Node, node2 Node) float64 {
@@ -19,11 +19,11 @@ func distanciaNodes(node1 Node, node2 Node) float64 {
 
 func (n *Node) afegirVei(node *Node, direccional bool) {
 	if !n.veiExisteix(node) {
-		n.veins = append(n.veins, *node)
+		n.veins = append(n.veins, node)
 	}
 	if direccional {
 		if node.veiExisteix(n) {
-			node.veins = append(node.veins, *n)
+			node.veins = append(node.veins, n)
 		}
 	}
 }

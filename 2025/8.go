@@ -20,7 +20,7 @@ func day8() {
 		limit = 1000
 	}
 	connexions := crearConnexions(nodes, limit)
-
+	// 81536
 	fmt.Println("Solució primer problema:", maxConnexions(connexions, 3))
 }
 
@@ -32,41 +32,40 @@ func input2Nodes(input []string) []*NodeConne {
 			x, _ := strconv.Atoi(splitLine[0])
 			y, _ := strconv.Atoi(splitLine[1])
 			z, _ := strconv.Atoi(splitLine[2])
-			nodes = append(nodes, &NodeConne{&Node{x, y, z, []Node{}}, 0})
+			nodes = append(nodes, &NodeConne{&Node{x, y, z, []*Node{}}, 0, false})
 		}
 	}
 	return nodes
 }
 
 func crearConnexions(nodes []*NodeConne, limit int) []*NodeConne {
-	distancies := llistaDistanciaNodes(nodes, limit)
-	nodes = minNodes(distancies)
+	distancies := llistaDistanciaNodes(nodes)
+	var minNodes []*NodeConne
 	for i := range limit {
-		node1 := (*distancies[i].node1)
-		node2 := (*distancies[i].node2)
-		max := math.Max(float64(node1.Connexio), float64(node2.Connexio))
+		connexio := distancies.pop()
+		node1 := connexio.node1
+		node2 := connexio.node2
+		if !nodeExisteix(minNodes, node1) {
+			minNodes = append(minNodes, node1)
+		}
+		if !nodeExisteix(minNodes, node2) {
+			minNodes = append(minNodes, node2)
+		}
+		max := math.Max(float64(node1.Circuit), float64(node2.Circuit))
 		if max == 0 {
-			distancies[i].node1.Connexio = i + 1
-			distancies[i].node2.Connexio = i + 1
-		} else if node1.Connexio > node2.Connexio {
-			converteixConnexio(&distancies, node2.Connexio, node1.Connexio, i)
-		} else if node2.Connexio > node1.Connexio {
-			converteixConnexio(&distancies, node1.Connexio, node2.Connexio, i)
+			node1.Circuit = i + 1
+			node2.Circuit = i + 1
+		} else if node1.Circuit > node2.Circuit {
+			converteixCircuit(minNodes, node2.Circuit, node1.Circuit)
+		} else if node2.Circuit > node1.Circuit {
+			converteixCircuit(minNodes, node1.Circuit, node2.Circuit)
 		}
 	}
-	return nodes
+	return minNodes
 }
+
 func maxConnexions(nodes []*NodeConne, max int) int {
-	nodeConneMapa := make(map[int][]*NodeConne)
-	for _, nodeConne := range nodes {
-		if _, ok := nodeConneMapa[nodeConne.Connexio]; !ok {
-			nodeConneMapa[nodeConne.Connexio] = []*NodeConne{}
-		}
-		a := nodeConneMapa[nodeConne.Connexio]
-		if !nodeExisteix(a, nodeConne) {
-			nodeConneMapa[nodeConne.Connexio] = append(nodeConneMapa[nodeConne.Connexio], nodeConne)
-		}
-	}
+	nodeConneMapa := nodeConnToMap(nodes)
 	var nodeConneSlice [][]*NodeConne
 	for _, nC := range nodeConneMapa {
 		nodeConneSlice = append(nodeConneSlice, nC)
@@ -81,17 +80,21 @@ func maxConnexions(nodes []*NodeConne, max int) int {
 	return total
 }
 
-func minNodes(distancies []Distancia) []*NodeConne {
-	var minNodes []*NodeConne
-	for i := range len(distancies) {
-		if !nodeExisteix(minNodes, distancies[i].node1) {
-			minNodes = append(minNodes, distancies[i].node1)
+func nodeConnToMap(nodes []*NodeConne) map[int][]*NodeConne {
+	nodeConneMapa := make(map[int][]*NodeConne)
+	for _, nodeConne := range nodes {
+		if nodeConne.Circuit == 0 {
+			continue
 		}
-		if !nodeExisteix(minNodes, distancies[i].node2) {
-			minNodes = append(minNodes, distancies[i].node2)
+		if _, ok := nodeConneMapa[nodeConne.Circuit]; !ok {
+			nodeConneMapa[nodeConne.Circuit] = []*NodeConne{}
+		}
+		a := nodeConneMapa[nodeConne.Circuit]
+		if !nodeExisteix(a, nodeConne) {
+			nodeConneMapa[nodeConne.Circuit] = append(nodeConneMapa[nodeConne.Circuit], nodeConne)
 		}
 	}
-	return minNodes
+	return nodeConneMapa
 }
 
 func nodeExisteix(nodes []*NodeConne, node *NodeConne) bool {
@@ -103,69 +106,95 @@ func nodeExisteix(nodes []*NodeConne, node *NodeConne) bool {
 	return false
 }
 
-func converteixConnexio(distancia *[]Distancia, origen int, desti int, index int) {
-	for i := range index + 1 {
-		if (*distancia)[i].node1.Connexio == origen {
-			(*(*distancia)[i].node1).Connexio = desti
-		}
-		if (*distancia)[i].node2.Connexio == origen {
-			(*(*distancia)[i].node2).Connexio = desti
+func converteixCircuit(nodes []*NodeConne, origen int, desti int) {
+	for _, node := range nodes {
+		if node.Circuit == origen {
+			node.Circuit = desti
 		}
 	}
 }
 
-func llistaDistanciaNodes(nodes []*NodeConne, limit int) []Distancia {
-	var llistaDistancia []Distancia
+func llistaDistanciaNodes(nodes []*NodeConne) DistanciaMinHeap {
+	var distanciaHeap DistanciaMinHeap
 	for i := range len(nodes) {
+		n1 := nodes[i]
 		for j := i + 1; j < len(nodes); j++ {
-			n1 := nodes[i]
 			n2 := nodes[j]
 			distancia := distanciaNodes(*n1.Node, *n2.Node)
-			if len(llistaDistancia) <= limit || distancia < llistaDistancia[len(llistaDistancia)-1].n {
-				llistaDistancia = appendDistanciaOrdenat(llistaDistancia, &Distancia{nodes[i], nodes[j], distancia})
-				if len(llistaDistancia) > limit {
-					llistaDistancia = llistaDistancia[:limit]
-				}
-			}
+			connexio := Connexio{nodes[i], nodes[j], distancia}
+			distanciaHeap.insert(connexio)
 		}
 	}
-	return llistaDistancia
-}
 
-func appendDistanciaOrdenat(llistaDistancia []Distancia, distancia *Distancia) []Distancia {
-	newIndex := findIndexLess(llistaDistancia, distancia.n, 0, len(llistaDistancia))
-	novaLlista := make([]Distancia, len(llistaDistancia)+1)
-	copy(novaLlista[:newIndex], llistaDistancia[:newIndex])
-	novaLlista[newIndex] = *distancia
-	copy(novaLlista[newIndex+1:], llistaDistancia[newIndex:])
-	return novaLlista
-}
-
-func findIndexLess(llista []Distancia, target float64, inici int, fi int) int {
-	if fi <= inici {
-		return inici
-	}
-	mid := (inici + fi) / 2
-
-	if llista[mid].n < target {
-		return findIndexLess(llista, target, mid+1, fi)
-	} else if llista[mid].n > target {
-		if mid == 0 || llista[mid-1].n < target {
-			return mid
-		}
-		return findIndexLess(llista, target, inici, mid-1)
-	} else {
-		return mid
-	}
+	return distanciaHeap
 }
 
 type NodeConne struct {
 	*Node
-	Connexio int
+	Circuit int
+	Ultim   bool
 }
 
-type Distancia struct {
+type Connexio struct {
 	node1 *NodeConne
 	node2 *NodeConne
 	n     float64
+}
+
+type DistanciaMinHeap []Connexio
+
+func (h *DistanciaMinHeap) insert(n Connexio) {
+	*h = append(*h, n)
+	h.swapParent(len(*h) - 1)
+}
+
+func (h *DistanciaMinHeap) pop() Connexio {
+	connexio := (*h)[0]
+	(*h)[0] = (*h)[len((*h))-1]
+	(*h) = (*h)[:len((*h))-1]
+	h.swapChild(0)
+	return connexio
+}
+
+func (h *DistanciaMinHeap) swapChild(i int) {
+	lChildI := 2*i + 1
+	rChildI := 2*i + 2
+
+	var minChildI int
+
+	// No children
+	if lChildI >= len((*h)) {
+		return
+	}
+
+	if rChildI >= len((*h)) {
+		minChildI = lChildI
+	} else {
+		if (*h)[lChildI].n < (*h)[rChildI].n {
+			minChildI = lChildI
+		} else {
+			minChildI = rChildI
+		}
+	}
+	if (*h)[i].n > (*h)[minChildI].n {
+		(*h)[minChildI], (*h)[i] = (*h)[i], (*h)[minChildI]
+		h.swapChild(minChildI)
+	}
+}
+
+func (h *DistanciaMinHeap) swapParent(i int) {
+	if i == 0 || i >= len((*h)) {
+		return
+	}
+	parentIndex := (i - 1) / 2
+	if (*h)[parentIndex].n > (*h)[i].n {
+		(*h)[parentIndex], (*h)[i] = (*h)[i], (*h)[parentIndex]
+		h.swapParent(parentIndex)
+	}
+}
+
+func (h DistanciaMinHeap) print() {
+	for _, e := range h {
+		fmt.Println(e.n, ", ", e.node1, ", ", e.node2)
+	}
 }
