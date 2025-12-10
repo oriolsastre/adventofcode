@@ -2,5 +2,5 @@ package main
 
 func main() {
 	defer timer()()
-	day9()
+	day10()
 }
