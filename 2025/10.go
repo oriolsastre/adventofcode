@@ -13,26 +13,38 @@ func day10() {
 	inputArray := input2LineArray(input, true)
 	machines := inputArray2Machines(inputArray)
 
-	sumMinButtons := 0
-	for _, machine := range machines {
-		sumMinButtons += minButtonsMachine(machine)
-	}
+	indicatorMinButtons, joltageMinButtons := minButtons(machines)
 
 	// 509
-	fmt.Printf("Solució del 1er problema: %d\n", sumMinButtons)
+	fmt.Printf("Solució del 1er problema: %d\n", indicatorMinButtons)
+	//
+	fmt.Printf("Solució del 2n problema: %d\n", joltageMinButtons)
 }
 
-func minButtonsMachine(machine Machine) int {
-	nButtons := len(machine.buttons)
-	binComb := combinationsBin(nButtons)
-	for _, comb := range binComb {
+func minButtons(machines []Machine) (int, int) {
+	combCache := CombCache{}
+
+	indicatorMinButtons := 0
+	joltageMinButtons := 0
+	for _, machine := range machines {
+		nButtons := len(machine.buttons)
+		binComb := combinations(2, nButtons, &combCache)
+
+		indicatorMinButtons += minIndicatorMachine(machine, binComb)
+	}
+
+	return indicatorMinButtons, joltageMinButtons
+
+}
+
+func minIndicatorMachine(machine Machine, combinations []Bin) int {
+	for _, comb := range combinations {
 		result := 0
 		pos := binaryOnes(comb.n)
 		for _, p := range pos {
 			result ^= buttonToBinInt(machine.buttons[p])
 		}
 		if result == int(machine.indicator) {
-			// fmt.Println(pos)
 			return comb.w
 		}
 	}
@@ -45,20 +57,56 @@ func buttonToBinInt(button Button) int {
 	}
 	return bin
 }
-func combinationsBin(size int) []Bin {
-	var combinationsBin []Bin
-	max := int(math.Pow(2, float64(size)))
-	for n := range max {
+func combinations(base int, power int, cache *CombCache) []Bin {
+	if _, ok := (*cache)[power]; !ok {
+		(*cache)[power] = map[int][]Bin{}
+	}
+	if combs, ok := (*cache)[power][base]; ok {
+		return combs
+	}
+	var combinations []Bin
+	max := int(math.Pow(float64(base), float64(power)))
+	for n := 1; n < max; n++ {
 		var bin Bin
 		bin.n = n
-		bin.w = binaryWeigth(n)
-		combinationsBin = append(combinationsBin, bin)
+		bin.w = nWeight(n, base)
+		bin.b = base
+		bin.d = nDigits(n, base)
+		combinations = append(combinations, bin)
 	}
-	slices.SortFunc(combinationsBin, func(a Bin, b Bin) int {
+	slices.SortFunc(combinations, func(a Bin, b Bin) int {
 		return a.w - b.w
 	})
-	return combinationsBin
+	if _, ok := (*cache)[power][base]; !ok {
+		(*cache)[power][base] = combinations
+	}
+	return combinations
 }
+
+func nWeight(n int, base int) int {
+	if base == 2 {
+		return binaryWeigth(n)
+	}
+	weigth := 0
+	fmt.Println(n, ",", base)
+	nBase := strconv.FormatInt(int64(n), base)
+	for _, char := range nBase {
+		x, _ := strconv.Atoi(string(char))
+		weigth += x
+	}
+	return weigth
+}
+func nDigits(n int, base int) []int {
+	digits := []int{}
+	nBase := strconv.FormatInt(int64(n), base)
+	for i := range len(nBase) {
+		char := nBase[len(nBase)-i-1]
+		x, _ := strconv.Atoi(string(char))
+		digits = append(digits, x)
+	}
+	return digits
+}
+
 func binaryWeigth(bin int) int {
 	weigth := 0
 	for bin > 0 {
@@ -78,6 +126,7 @@ func binaryOnes(bin int) []int {
 	return ones
 }
 
+// Input processing
 func inputArray2Machines(inputArray []string) []Machine {
 	var machines []Machine
 	for _, line := range inputArray {
@@ -86,7 +135,6 @@ func inputArray2Machines(inputArray []string) []Machine {
 	}
 	return machines
 }
-
 func inputLine2Machine(line string) Machine {
 	var machine Machine
 	lineArray := inputLineSplit(line, " ")
@@ -103,6 +151,7 @@ func inputLine2Machine(line string) Machine {
 	return machine
 }
 
+// Machine processing
 func indicatorSToIndicator(indicatorS string) Indicator {
 	var indicator Indicator
 	indicatorS = indicatorS[1 : len(indicatorS)-1]
@@ -131,7 +180,6 @@ func joltageStoJoltage(joltageS string) Joltage {
 	joltage = arrayStoArrayInt(inputLineSplit(joltageS[1:len(joltageS)-1], ","))
 	return joltage
 }
-
 func arrayStoArrayInt(array []string) []int {
 	var arrayInt []int
 	for _, n := range array {
@@ -156,4 +204,7 @@ type Machine struct {
 type Bin struct {
 	n int
 	w int
+	b int
+	d []int
 }
+type CombCache map[int]map[int][]Bin
