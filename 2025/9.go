@@ -36,7 +36,7 @@ func biggestRectangle(tiles []Tile) int {
 }
 
 func biggestCleanRectangle(tiles []Tile) int {
-	edges := tiles2Edges(tiles)
+	edges := tiles2AllEdges(tiles)
 	maxRectangle := 0
 	rectangleCache := []Rectangle{}
 	for i := range len(tiles) - 1 {
@@ -71,10 +71,10 @@ func hasRedTile(r Rectangle, tiles []Tile) bool {
 	}
 	return false
 }
-func hasEdge(r Rectangle, edges Edges, tiles []Tile) bool {
-	vEdges := edges.v
-	hEdges := edges.h
-	for x, yValues := range vEdges {
+func hasEdge(r Rectangle, edges AllEdges, tiles []Tile) bool {
+	vAllEdges := edges.v
+	hAllEdges := edges.h
+	for x, yValues := range vAllEdges {
 		if x > r.minX && x < r.maxX {
 			for _, y := range yValues {
 				if y > r.minY && y < r.maxY {
@@ -85,7 +85,7 @@ func hasEdge(r Rectangle, edges Edges, tiles []Tile) bool {
 			}
 		}
 	}
-	for y, xValues := range hEdges {
+	for y, xValues := range hAllEdges {
 		if y > r.minY && y < r.maxY {
 			for _, x := range xValues {
 				if x > r.minX && x < r.maxX {
@@ -117,7 +117,7 @@ func rectangleInCache(r Rectangle, cache []Rectangle) bool {
 	return false
 }
 
-func rectangleInsedShape(r Rectangle, edges Edges, tiles []Tile) bool {
+func rectangleInsedShape(r Rectangle, edges AllEdges, tiles []Tile) bool {
 	x := r.minX + (r.maxX-r.minX)/2
 	y := r.minY + (r.maxY-r.minY)/2
 	if numberOfCrossings(x, y, edges, tiles)%2 == 0 {
@@ -128,7 +128,7 @@ func rectangleInsedShape(r Rectangle, edges Edges, tiles []Tile) bool {
 
 // Des de el marge, que es fora, cada cop que es creua un edge. Parell, seguim fora, senar acabem dins.
 // Miro en diagonal per no creuar edges directament. Tractar casos si creuem sobre cantonada.
-func numberOfCrossings(x int, y int, edges Edges, tiles []Tile) int {
+func numberOfCrossings(x int, y int, edges AllEdges, tiles []Tile) int {
 	dXY := int(math.Min(float64(x), float64(y)))
 	originX := x - dXY
 	originY := y - dXY
@@ -169,8 +169,8 @@ func rectangleArea(rectangle Rectangle) int {
 	return dx * dy
 }
 
-func tiles2Edges(tiles []Tile) Edges {
-	edges := Edges{v: map[int][]int{}, h: map[int][]int{}}
+func tiles2AllEdges(tiles []Tile) AllEdges {
+	edges := AllEdges{v: map[int][]int{}, h: map[int][]int{}}
 	for i, tile := range tiles {
 		nTileI := (i + 1) % len(tiles)
 		if tile.y == tiles[nTileI].y {
@@ -264,7 +264,7 @@ type Rectangle struct {
 	maxY int
 }
 
-type Edges struct {
+type AllEdges struct {
 	h map[int][]int
 	v map[int][]int
 }

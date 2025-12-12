@@ -36,7 +36,7 @@ func input2Nodes(input []string) []*NodeConne {
 			x, _ := strconv.Atoi(splitLine[0])
 			y, _ := strconv.Atoi(splitLine[1])
 			z, _ := strconv.Atoi(splitLine[2])
-			nodes = append(nodes, &NodeConne{&Node{x, y, z, []*Node{}}, 0})
+			nodes = append(nodes, &NodeConne{&Node{"", x, y, z, []*Node{}}, 0})
 		}
 	}
 	return nodes
@@ -49,10 +49,10 @@ func crearConnexions(nodes []*NodeConne, limit int) []*NodeConne {
 		connexio := distancies.pop()
 		node1 := connexio.node1
 		node2 := connexio.node2
-		if !nodeExisteix(minNodes, node1) {
+		if !nodeConneExisteix(minNodes, node1) {
 			minNodes = append(minNodes, node1)
 		}
-		if !nodeExisteix(minNodes, node2) {
+		if !nodeConneExisteix(minNodes, node2) {
 			minNodes = append(minNodes, node2)
 		}
 		max := math.Max(float64(node1.Circuit), float64(node2.Circuit))
@@ -136,14 +136,14 @@ func nodeConnToMap(nodes []*NodeConne) map[int][]*NodeConne {
 			nodeConneMapa[nodeConne.Circuit] = []*NodeConne{}
 		}
 		a := nodeConneMapa[nodeConne.Circuit]
-		if !nodeExisteix(a, nodeConne) {
+		if !nodeConneExisteix(a, nodeConne) {
 			nodeConneMapa[nodeConne.Circuit] = append(nodeConneMapa[nodeConne.Circuit], nodeConne)
 		}
 	}
 	return nodeConneMapa
 }
 
-func nodeExisteix(nodes []*NodeConne, node *NodeConne) bool {
+func nodeConneExisteix(nodes []*NodeConne, node *NodeConne) bool {
 	for i := range len(nodes) {
 		if (nodes)[i] == node {
 			return true
