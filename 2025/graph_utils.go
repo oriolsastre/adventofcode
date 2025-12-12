@@ -10,11 +10,13 @@ type Graph struct {
 	direccional bool
 }
 type Node struct {
-	id    string
-	x     int
-	y     int
-	z     int
-	veins []*Node
+	id      string
+	x       int
+	y       int
+	z       int
+	veins   []*Node
+	visitat bool
+	camins  int
 }
 type Edges map[string][]string
 
@@ -90,7 +92,12 @@ func (g *Graph) afegirEdge(origen Node, desti Node) {
 	}
 }
 
-func (g *Graph) iniciarVeins() {
+func (g *Graph) iniciarGraf() {
+	for i := range g.nodes {
+		g.nodes[i].visitat = false
+		g.nodes[i].camins = 0
+		g.nodes[i].veins = []*Node{}
+	}
 	for nodeS, veinsS := range g.edges {
 		_, node := g.nodeExisteix(Node{id: nodeS})
 		for _, veiS := range veinsS {

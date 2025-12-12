@@ -36,7 +36,7 @@ func input2Nodes(input []string) []*NodeConne {
 			x, _ := strconv.Atoi(splitLine[0])
 			y, _ := strconv.Atoi(splitLine[1])
 			z, _ := strconv.Atoi(splitLine[2])
-			nodes = append(nodes, &NodeConne{&Node{"", x, y, z, []*Node{}}, 0})
+			nodes = append(nodes, &NodeConne{&Node{x: x, y: y, z: z, veins: []*Node{}}, 0})
 		}
 	}
 	return nodes
